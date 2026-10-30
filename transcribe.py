@@ -25,16 +25,24 @@ def cargar_audio(path, sr=16000):
     return np.frombuffer(out, np.int16).astype(np.float32) / 32768.0
 
 
-def transcribir(model, audio, language="en", **kw):
+def transcribir(model, audio, language=None, **kw):
+    """language: código ISO ("en", "fr", "ja"...) o None para detectarlo."""
     if isinstance(audio, str):
         audio = cargar_audio(audio)
-    segments, _ = model.transcribe(
+    if language in (None, "", "auto"):
+        # Detectar con varios tramos de 30 s: el inicio de una película suele ser solo música.
+        kw.setdefault("language_detection_segments", 8)
+        kw.setdefault("language_detection_threshold", 0.6)
+        language = None
+    segments, info = model.transcribe(
         audio, language=language, word_timestamps=True,
         # Sin VAD: Silero se pierde diálogos mezclados con música/ruido en películas.
         # Este filtro descarta alucinaciones rodeadas de silencio (necesita word_timestamps).
         hallucination_silence_threshold=2.0,
         condition_on_previous_text=False,   # evita alucinaciones/bucles en películas largas
         beam_size=5, **kw)
+    if language is None:
+        print(f"  idioma detectado: {info.language} ({info.language_probability:.0%})")
     words = []
     for seg in segments:
         for w in seg.words or []:
@@ -107,7 +115,7 @@ def main():
     ap = argparse.ArgumentParser(description="mp3/mp4 → srt con tiempos por palabra")
     ap.add_argument("audio", nargs="+")
     ap.add_argument("--model", default="medium", help="tiny/base/small/medium/large-v3/large-v3-turbo")
-    ap.add_argument("--language", default="en")
+    ap.add_argument("--language", default="auto", help="código ISO del audio (en, fr, ja...) o auto")
     ap.add_argument("--device", default="auto", help="cuda/cpu/auto")
     a = ap.parse_args()
     device = a.device

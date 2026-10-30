@@ -10,7 +10,7 @@ def md(src):
 cells = [
     md("""
 # mp3 → srt → traducción
-1. **Transcribe** cada `.mp3` sin `.srt` con faster-whisper, usando tiempos por palabra.
+1. **Transcribe** cada `.mp3` sin `.srt` con faster-whisper, usando tiempos por palabra (el idioma del audio se detecta solo).
 2. **Traduce** cada `.srt` sin su versión `.spa.srt` con Claude, sin tocar los tiempos.
 
 El código se descarga de GitHub (`rilianx/translate_subtitles`) en cada ejecución, así siempre está al día.
@@ -21,8 +21,26 @@ en el panel 🔑 (con acceso habilitado para este notebook):
 """),
     code("""
 !pip install -q faster-whisper anthropic
-import subprocess, sys
+import ctypes, glob, os, subprocess, sys
 from google.colab import userdata
+
+# faster-whisper usa CUDA 12; si Colab ya no trae libcublas.so.12, se instala por pip y se precarga.
+try:
+    ctypes.CDLL("libcublas.so.12")
+except OSError:
+    !pip install -q nvidia-cublas-cu12 "nvidia-cudnn-cu12==9.*"
+    import nvidia
+    libs = [f for base in nvidia.__path__
+            for pat in ("cublas/lib/libcublasLt.so.12", "cublas/lib/libcublas.so.12", "cudnn/lib/libcudnn*.so.9")
+            for f in sorted(glob.glob(os.path.join(base, pat)))]
+    for _ in range(3):                    # cuDNN tiene sub-librerías que dependen entre sí
+        for f in libs:
+            try:
+                ctypes.CDLL(f, mode=ctypes.RTLD_GLOBAL)
+            except OSError:
+                pass
+    ctypes.CDLL("libcublas.so.12")        # si esto falla, el error es claro aquí y no a mitad de película
+    print("Librerías CUDA 12 instaladas y cargadas")
 
 # Descarga la última versión del código desde GitHub.
 # Si el repo fuera privado, crea el secreto GITHUB_TOKEN (token con lectura del repo).
@@ -49,7 +67,7 @@ folder_path = '/content/drive/MyDrive/Multimedia/Translations'
 TRANSCRIBIR = True
 TRADUCIR = True
 WHISPER_MODEL = "medium"           # validado; en GPU puedes probar "large-v3" o "large-v3-turbo"
-IDIOMA_AUDIO = "en"
+IDIOMA_AUDIO = "auto"              # "auto" lo detecta; o fíjalo: "en", "fr", "it", "ja"...
 IDIOMA_DESTINO = "español latinoamericano neutro"
 SUFIJO = "spa"                     # salida: nombre.spa.srt
 NOTAS = ""                         # opcional: título, época, personajes, glosario...
