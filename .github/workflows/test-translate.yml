@@ -1,0 +1,37 @@
+name: test-translate
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ["translate.py", "tests/**", ".github/workflows/test-translate.yml"]
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "anthropic>=2.3"
+      - name: Traducir muestra
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python translate.py tests/sample.srt --notas "Cumbres Borrascosas (Wuthering Heights), Inglaterra rural, siglo XVIII"
+      - name: Verificar tiempos y numeración
+        run: |
+          python - <<'PY'
+          import translate as T
+          a, b = T.leer_srt("tests/sample.srt"), T.leer_srt("tests/sample.spa.srt")
+          assert len(a) == len(b), (len(a), len(b))
+          assert all(x["tiempo"] == y["tiempo"] for x, y in zip(a, b)), "tiempos distintos"
+          iguales = sum(x["texto"] == y["texto"] for x, y in zip(a, b))
+          print(f"{len(b)} subtítulos, tiempos idénticos, {iguales} sin cambio de texto")
+          for x, y in list(zip(a, b))[:15]:
+              print(repr(x["texto"]), "->", repr(y["texto"]))
+          PY
+          cat tests/sample.spa.srt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sample-spa
+          path: tests/sample.spa.srt
