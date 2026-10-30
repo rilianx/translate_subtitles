@@ -68,6 +68,13 @@ r = subprocess.run(["git", "clone", "-q", "--depth", "1", f"https://{auth}github
 if r.returncode:
     raise RuntimeError("No se pudo clonar el repo (¿es privado? crea el secreto GITHUB_TOKEN)")
 sys.path.insert(0, "/content/translate_subtitles")
+# Descartar copias viejas de los módulos (versiones anteriores del notebook los escribían en /content).
+for m in ("transcribe", "translate", "evalsrt"):
+    sys.modules.pop(m, None)
+    if os.path.exists(f"/content/{m}.py"):
+        os.remove(f"/content/{m}.py")
+import transcribe
+print("Usando", transcribe.__file__)
 print(subprocess.run(["git", "-C", "/content/translate_subtitles", "log", "-1", "--format=Código: %h %s (%cr)"],
                      capture_output=True, text=True).stdout)
 """),
