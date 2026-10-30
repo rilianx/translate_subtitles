@@ -33,6 +33,7 @@ IDIOMA_AUDIO = "en"
 IDIOMA_DESTINO = "español latinoamericano neutro"
 SUFIJO = "spa"                     # salida: nombre.spa.srt
 NOTAS = ""                         # opcional: título, época, personajes, glosario...
+USAR_FICHA = True                  # lee todo el srt antes y arma ficha de personajes y trato
 """),
     md("## Código (se escribe a archivos .py y se importa)"),
     module("transcribe.py"),
@@ -77,7 +78,11 @@ print(f"{len(pendientes_tr)} srt sin traducir:", *pendientes_tr, sep="\\n- ")
 if TRADUCIR:
     for f in pendientes_tr:
         print("Traduciendo:", f)
-        subs = translate.traducir(translate.leer_srt(os.path.join(folder_path, f)), IDIOMA_DESTINO, NOTAS)
+        path = os.path.join(folder_path, f)
+        subs = translate.leer_srt(path)
+        # Ficha de personajes/trato/glosario: se guarda como nombre.ficha.md; si la editas, se reutiliza.
+        ficha = translate.ficha_de(path, subs, IDIOMA_DESTINO, NOTAS, translate.cliente()) if USAR_FICHA else ""
+        subs = translate.traducir(subs, IDIOMA_DESTINO, NOTAS, ficha=ficha)
         translate.escribir_srt(subs, os.path.join(folder_path, f[:-4] + f'.{SUFIJO}.srt'))
 """),
     md("""

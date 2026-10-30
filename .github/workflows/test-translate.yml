@@ -2,6 +2,10 @@ name: test-translate
 
 on:
   workflow_dispatch:
+    inputs:
+      modelos:
+        description: 'Lista JSON de modelos a probar'
+        default: '["claude-opus-5-5"]'
 
 permissions:
   contents: write
@@ -12,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: [claude-opus-5-5, claude-sonnet-5-5, claude-haiku-5-5]
+        model: ${{ fromJSON(inputs.modelos) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -43,13 +47,13 @@ jobs:
       - name: Publicar resultado en la rama resultado-<modelo>
         if: always()
         run: |
-          mkdir -p /tmp/out && cp tests/sample.spa.srt tests/log.txt /tmp/out/ 2>/dev/null || true
+          mkdir -p /tmp/out && cp tests/sample.spa.srt tests/sample.ficha.md tests/log.txt /tmp/out/ 2>/dev/null || true
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git checkout --orphan out
           git rm -rq --cached .
           cp /tmp/out/* . 2>/dev/null || true
           echo "${{ github.run_id }} ${{ job.status }}" > run.txt
-          git add run.txt log.txt sample.spa.srt 2>/dev/null || git add run.txt
+          git add run.txt log.txt sample.spa.srt sample.ficha.md 2>/dev/null || git add run.txt
           git commit -qm "test-translate ${{ matrix.model }} ${{ github.run_id }}"
           git push -f origin HEAD:refs/heads/resultado-${{ matrix.model }}
