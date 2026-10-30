@@ -5,6 +5,9 @@ on:
   push:
     paths: ["translate.py", "tests/**", ".github/workflows/test-translate.yml"]
 
+permissions:
+  contents: write
+
 jobs:
   translate:
     runs-on: ubuntu-latest
@@ -17,7 +20,9 @@ jobs:
       - name: Traducir muestra
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python translate.py tests/sample.srt --notas "Cumbres Borrascosas (Wuthering Heights), Inglaterra rural, siglo XVIII"
+        run: |
+          set -o pipefail
+          python translate.py tests/sample.srt --notas "Cumbres Borrascosas (Wuthering Heights), Inglaterra rural, siglo XVIII" 2>&1 | tee tests/log.txt
       - name: Verificar tiempos y numeración
         run: |
           python - <<'PY'
@@ -27,11 +32,18 @@ jobs:
           assert all(x["tiempo"] == y["tiempo"] for x, y in zip(a, b)), "tiempos distintos"
           iguales = sum(x["texto"] == y["texto"] for x, y in zip(a, b))
           print(f"{len(b)} subtítulos, tiempos idénticos, {iguales} sin cambio de texto")
-          for x, y in list(zip(a, b))[:15]:
-              print(repr(x["texto"]), "->", repr(y["texto"]))
+          assert iguales <= len(a) * 0.15, "demasiados subtítulos sin traducir"
           PY
-          cat tests/sample.spa.srt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sample-spa
-          path: tests/sample.spa.srt
+      - name: Publicar resultado en la rama test-output
+        if: always()
+        run: |
+          mkdir -p /tmp/out && cp tests/sample.spa.srt tests/log.txt /tmp/out/ 2>/dev/null || true
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan test-output
+          git rm -rq --cached .
+          cp /tmp/out/* . 2>/dev/null || true
+          echo "${{ github.run_id }} ${{ job.status }}" > run.txt
+          git add run.txt log.txt sample.spa.srt 2>/dev/null || git add run.txt
+          git commit -qm "Resultado de test-translate ${{ github.run_id }}"
+          git push -f origin test-output
