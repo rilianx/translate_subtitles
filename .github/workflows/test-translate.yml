@@ -40,7 +40,7 @@ jobs:
           print(f"{len(b)} subtítulos, tiempos idénticos, {iguales} sin cambio de texto")
           assert iguales <= len(a) * 0.15, "demasiados subtítulos sin traducir"
           PY
-      - name: Publicar resultado en la rama test-output/<modelo>
+      - name: Publicar resultado en la rama resultado-<modelo>
         if: always()
         run: |
           mkdir -p /tmp/out && cp tests/sample.spa.srt tests/log.txt /tmp/out/ 2>/dev/null || true
@@ -52,4 +52,4 @@ jobs:
           echo "${{ github.run_id }} ${{ job.status }}" > run.txt
           git add run.txt log.txt sample.spa.srt 2>/dev/null || git add run.txt
           git commit -qm "test-translate ${{ matrix.model }} ${{ github.run_id }}"
-          git push -f origin HEAD:refs/heads/test-output/${{ matrix.model }}
+          git push -f origin HEAD:refs/heads/resultado-${{ matrix.model }}
