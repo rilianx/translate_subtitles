@@ -34,7 +34,8 @@ Reglas:
   de unos {chars} caracteres; usa \\n para separar líneas.
 - No omitas contenido: todo lo que se dice en el original debe estar en la traducción.
 - Si en un mismo subtítulo hablan dos personajes, pon cada uno en su línea con guion
-  ("-¿Corriendo?\n-Sí."). Mantén las etiquetas de formato (<i>, </i>, <b>...).
+  ("-¿Corriendo?\n-Sí."); en ese caso cada línea puede llegar a ~55 caracteres. Si aun así no
+  cabe, abrevia la forma, nunca el contenido. Mantén las etiquetas de formato (<i>, </i>, <b>...).
 - Los nombres propios no se traducen.
 - Si un subtítulo es solo un sonido o una interjección, adáptalo ("Oh" → "Oh", "Huh?" → "¿Eh?").
 - El texto viene de un reconocimiento de voz automático y puede tener errores: si una palabra
