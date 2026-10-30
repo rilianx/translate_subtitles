@@ -2,8 +2,6 @@ name: test-translate
 
 on:
   workflow_dispatch:
-  push:
-    paths: ["translate.py", "tests/**", ".github/workflows/test-translate.yml"]
 
 permissions:
   contents: write
@@ -11,6 +9,10 @@ permissions:
 jobs:
   translate:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [claude-opus-5-5, claude-sonnet-5-5, claude-haiku-5-5]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -23,7 +25,10 @@ jobs:
           ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}
         run: |
           set -o pipefail
-          python translate.py tests/sample.srt --notas "Cumbres Borrascosas (Wuthering Heights), Inglaterra rural, siglo XVIII" 2>&1 | tee tests/log.txt
+          start=$(date +%s)
+          python translate.py tests/sample.srt --model ${{ matrix.model }} \
+            --notas "Cumbres Borrascosas (Wuthering Heights), Inglaterra rural, siglo XVIII" 2>&1 | tee tests/log.txt
+          echo "Duración: $(( $(date +%s) - start ))s" | tee -a tests/log.txt
       - name: Verificar tiempos y numeración
         run: |
           python - <<'PY'
@@ -35,16 +40,16 @@ jobs:
           print(f"{len(b)} subtítulos, tiempos idénticos, {iguales} sin cambio de texto")
           assert iguales <= len(a) * 0.15, "demasiados subtítulos sin traducir"
           PY
-      - name: Publicar resultado en la rama test-output
+      - name: Publicar resultado en la rama test-output/<modelo>
         if: always()
         run: |
           mkdir -p /tmp/out && cp tests/sample.spa.srt tests/log.txt /tmp/out/ 2>/dev/null || true
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git checkout --orphan test-output
+          git checkout --orphan out
           git rm -rq --cached .
           cp /tmp/out/* . 2>/dev/null || true
           echo "${{ github.run_id }} ${{ job.status }}" > run.txt
           git add run.txt log.txt sample.spa.srt 2>/dev/null || git add run.txt
-          git commit -qm "Resultado de test-translate ${{ github.run_id }}"
-          git push -f origin test-output
+          git commit -qm "test-translate ${{ matrix.model }} ${{ github.run_id }}"
+          git push -f origin HEAD:refs/heads/test-output/${{ matrix.model }}

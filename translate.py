@@ -16,6 +16,8 @@ BATCH = 60            # subtítulos por llamada
 CONTEXT = 10          # subtítulos previos (ya traducidos) que se envían como contexto
 LINE_CHARS = 42
 
+USO = {"input": 0, "output": 0}   # tokens acumulados en esta sesión
+
 BLOCK = re.compile(r"(\d+)\s*\n(\d+:\d+:\d+[,.]\d+\s*-->\s*\d+:\d+:\d+[,.]\d+)[^\n]*\n(.*?)(?=\n\s*\n|\Z)", re.S)
 
 SYSTEM = """Eres un traductor profesional de subtítulos de cine y series.
@@ -96,16 +98,21 @@ def _pedir(client, system, contexto, bloque):
                       + json.dumps(contexto, ensure_ascii=False))
     partes.append("Traduce estos subtítulos:\n"
                   + json.dumps([{"id": s["id"], "texto": s["texto"]} for s in bloque], ensure_ascii=False))
-    response = client.beta.messages.create(
+    kw = dict(
         model=MODEL,
         max_tokens=16000,
         system=system,
         messages=[{"role": "user", "content": "\n\n".join(partes)}],
         output_config={"effort": EFFORT, "format": {"type": "json_schema", "schema": SCHEMA}},
-        # Si el modelo rechaza la petición, la API la reintenta con el modelo de respaldo recomendado.
-        betas=["server-side-fallback-2026-07-01"],
-        fallbacks="default",
     )
+    if "haiku" in MODEL:                        # Haiku no tiene modelo de respaldo
+        response = client.messages.create(**kw)
+    else:
+        # Si el modelo rechaza la petición, la API la reintenta con el modelo de respaldo recomendado.
+        response = client.beta.messages.create(**kw, betas=["server-side-fallback-2026-07-01"],
+                                               fallbacks="default")
+    USO["input"] += response.usage.input_tokens
+    USO["output"] += response.usage.output_tokens
     if response.stop_reason == "refusal":
         cat = response.stop_details.category if response.stop_details else None
         raise RuntimeError(f"Claude rechazó el bloque (categoría: {cat})")
@@ -163,6 +170,7 @@ def main():
         out = path[:-4] + f".{a.sufijo}.srt"
         print(path, "→", out)
         escribir_srt(traducir(leer_srt(path), a.idioma, a.notas, client), out)
+    print(f"Tokens ({MODEL}): entrada={USO['input']} salida={USO['output']}")
 
 
 if __name__ == "__main__":
