@@ -1,0 +1,6 @@
+tests/sample.srt → tests/sample.spa.srt
+  ficha guardada en tests/sample.ficha.md
+  40/80
+  80/80
+Tokens (claude-opus-5-5): entrada=5087 salida=6971
+Duración: 47s
