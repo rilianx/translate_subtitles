@@ -12,6 +12,7 @@ import json
 import os
 import re
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import anthropic
@@ -202,9 +203,12 @@ def traducir(subs, idioma="español latinoamericano neutro", notas="", client=No
                            notas=f"\nNotas sobre la obra:\n{notas}" if notas else "",
                            ficha=f"\n<ficha_de_la_obra>\n{ficha}\n</ficha_de_la_obra>" if ficha else "")
     out = [dict(s) for s in subs]
-    hechos = 0
-    with ThreadPoolExecutor(max_workers=workers or WORKERS) as pool:
+    hechos, t0 = 0, time.time()
+    workers = workers or WORKERS
+    with ThreadPoolExecutor(max_workers=workers) as pool:
         futuros = {pool.submit(_traducir_bloque, client, system, subs, i): i for i in range(0, len(subs), BATCH)}
+        if verbose:
+            print(f"  {len(subs)} subtítulos → {len(futuros)} bloques de {BATCH}, {workers} en paralelo")
         try:
             for fut in as_completed(futuros):
                 i = futuros[fut]
@@ -212,9 +216,10 @@ def traducir(subs, idioma="español latinoamericano neutro", notas="", client=No
                 for k, s in enumerate(subs[i:i + BATCH]):
                     if s["id"] in trad:
                         out[i + k]["texto"] = _rearmar(trad[s["id"]])
-                hechos += len(subs[i:i + BATCH])
+                hechos += 1
                 if verbose:
-                    print(f"  {hechos}/{len(subs)}")
+                    print(f"  bloque {i // BATCH + 1:>2} listo (subs {i + 1}-{min(i + BATCH, len(subs))})"
+                          f" · {hechos}/{len(futuros)} bloques · {time.time() - t0:.0f}s")
         except BaseException:
             for f in futuros:                   # error de key, Ctrl+C...: no lanzar los bloques pendientes
                 f.cancel()
