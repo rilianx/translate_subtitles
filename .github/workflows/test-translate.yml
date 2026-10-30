@@ -31,7 +31,7 @@ jobs:
           set -o pipefail
           start=$(date +%s)
           python translate.py tests/sample.srt --model ${{ matrix.model }} \
-            --notas "Cumbres Borrascosas (Wuthering Heights), Inglaterra rural, siglo XVIII" 2>&1 | tee tests/log.txt
+            --notas "Drama de época: familia del farero de Godrevy, Cornualles, siglo XIX" 2>&1 | tee tests/log.txt
           echo "Duración: $(( $(date +%s) - start ))s" | tee -a tests/log.txt
       - name: Verificar tiempos y numeración
         run: |
