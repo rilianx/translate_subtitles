@@ -9,7 +9,7 @@ Subtítulos automáticos para películas y series:
 ## Uso en Colab (recomendado)
 
 Abre `mp32srt.ipynb` en Colab (*Archivo → Abrir notebook → GitHub*) con un entorno de GPU T4.
-- Para traducir, crea el secreto `ANTHROPIC_API_KEY` en el panel 🔑 y habilita el acceso para el notebook.
+- Para traducir, crea el secreto `ANTHROPIC_API_KEY` en el panel 🔑 y habilita el acceso para el notebook. Si tu key no pertenece a un workspace, agrega también `ANTHROPIC_WORKSPACE_ID`.
 - En la celda de configuración, ajusta `folder_path`.
 
 El notebook procesa todos los `.mp3` de la carpeta que no tengan `.srt`, y luego traduce todos los `.srt` que no tengan `.spa.srt`.

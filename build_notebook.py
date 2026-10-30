@@ -64,6 +64,10 @@ import importlib, translate
 from google.colab import userdata
 importlib.reload(translate)
 os.environ["ANTHROPIC_API_KEY"] = userdata.get("ANTHROPIC_API_KEY")
+try:   # solo si tu key no está asociada a un workspace
+    os.environ["ANTHROPIC_WORKSPACE_ID"] = userdata.get("ANTHROPIC_WORKSPACE_ID")
+except Exception:
+    pass
 
 archivos = os.listdir(folder_path)
 originales =[f for f in archivos if f.lower().endswith('.srt') and not f[:-4].endswith(f'.{SUFIJO}')]

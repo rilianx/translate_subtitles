@@ -20,6 +20,7 @@ jobs:
       - name: Traducir muestra
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}
         run: |
           set -o pipefail
           python translate.py tests/sample.srt --notas "Cumbres Borrascosas (Wuthering Heights), Inglaterra rural, siglo XVIII" 2>&1 | tee tests/log.txt

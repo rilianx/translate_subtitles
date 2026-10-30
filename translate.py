@@ -5,6 +5,7 @@ respuesta en JSON con un esquema fijo, así cada traducción vuelve con su id.
 Requiere la variable de entorno ANTHROPIC_API_KEY.
 """
 import json
+import os
 import re
 
 import anthropic
@@ -49,6 +50,12 @@ SCHEMA = {
     "required": ["subtitulos"],
     "additionalProperties": False,
 }
+
+
+def cliente():
+    """Cliente con ANTHROPIC_API_KEY; ANTHROPIC_WORKSPACE_ID solo si la key no tiene workspace."""
+    ws = os.environ.get("ANTHROPIC_WORKSPACE_ID")
+    return anthropic.Anthropic(default_headers={"anthropic-workspace-id": ws} if ws else None)
 
 
 def leer_srt(path):
@@ -110,7 +117,7 @@ def _pedir(client, system, contexto, bloque):
 
 def traducir(subs, idioma="español latinoamericano neutro", notas="", client=None, verbose=True):
     """Devuelve una copia de `subs` con el texto traducido. Los tiempos no se tocan."""
-    client = client or anthropic.Anthropic()
+    client = client or cliente()
     system = SYSTEM.format(idioma=idioma, chars=LINE_CHARS,
                            notas=f"\nNotas sobre la obra:\n{notas}" if notas else "")
     out = [dict(s) for s in subs]
@@ -122,6 +129,8 @@ def traducir(subs, idioma="español latinoamericano neutro", notas="", client=No
         for _ in range(2):                      # 1 reintento solo con los que faltaron
             try:
                 trad.update(_pedir(client, system, contexto, pendientes))
+            except (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthropic.BadRequestError):
+                raise                           # key o petición inválida: no tiene sentido seguir
             except (RuntimeError, json.JSONDecodeError, anthropic.APIStatusError) as e:
                 print(f"  ! bloque {i // BATCH + 1}: {e}")
             pendientes = [s for s in bloque if s["id"] not in trad]
@@ -149,7 +158,7 @@ def main():
     ap.add_argument("--effort", default=EFFORT)
     a = ap.parse_args()
     MODEL, EFFORT = a.model, a.effort
-    client = anthropic.Anthropic()
+    client = cliente()
     for path in a.srt:
         out = path[:-4] + f".{a.sufijo}.srt"
         print(path, "→", out)
