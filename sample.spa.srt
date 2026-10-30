@@ -1,0 +1,367 @@
+1
+00:00:02,000 --> 00:00:05,357
+¡Cuidado con las rocas, Tom!
+La marea sube rápido.
+
+2
+00:00:05,957 --> 00:00:09,386
+Veo algo en el agua.
+¿Es un hombre?
+
+3
+00:00:09,986 --> 00:00:11,914
+¡Padre! ¡Padre, ven rápido!
+
+4
+00:00:12,514 --> 00:00:15,729
+¿Qué pasa ahora, muchacho?
+Apenas acabo de sentarme.
+
+5
+00:00:16,329 --> 00:00:19,829
+Hay un hombre en el agua,
+cerca de las rocas negras.
+
+6
+00:00:20,429 --> 00:00:23,429
+Demonios. Trae la cuerda del cobertizo.
+
+7
+00:00:24,029 --> 00:00:27,671
+Sra. Penrose, ponga la tetera,
+tenemos visita.
+
+8
+00:00:28,271 --> 00:00:30,629
+Dios mío. ¿Respira?
+
+9
+00:00:31,229 --> 00:00:33,371
+Apenas. Ayúdame a voltearlo.
+
+10
+00:00:33,971 --> 00:00:36,471
+Está helado. Llévalo junto al fuego.
+
+11
+00:00:37,071 --> 00:00:39,500
+¿Quién es usted, señor?
+¿Me oye?
+
+12
+00:00:40,100 --> 00:00:42,171
+Agua... ¿Dónde... dónde estoy?
+
+13
+00:00:42,771 --> 00:00:46,343
+Está en el faro de Godrevy,
+señor. Ya está a salvo.
+
+14
+00:00:46,943 --> 00:00:49,800
+¿Godrevy? No. No, tengo que
+llegar a Falmouth.
+
+15
+00:00:50,400 --> 00:00:54,186
+No llegará a ninguna parte esta
+noche, no con este tiempo.
+
+16
+00:00:54,786 --> 00:00:57,857
+¿Es contrabandista? Parece
+un contrabandista.
+
+17
+00:00:58,457 --> 00:01:01,600
+Calla, Ellen. No seas grosera
+con el caballero.
+
+18
+00:01:02,200 --> 00:01:04,914
+No estoy siendo grosera.
+Estoy siendo cuidadosa.
+
+19
+00:01:05,514 --> 00:01:08,443
+Tiene razón en ser cuidadosa,
+Sr. Trevaskis.
+
+20
+00:01:09,043 --> 00:01:10,757
+¿Cómo sabe mi nombre?
+
+21
+00:01:11,357 --> 00:01:15,000
+Está cosido en su abrigo:
+«J. Trevaskis, Penzance».
+
+22
+00:01:15,600 --> 00:01:18,600
+Entonces ha leído más de mí
+de lo que quisiera.
+
+23
+00:01:19,200 --> 00:01:22,557
+Beba esto. Es brandy.
+Le calentará los huesos.
+
+24
+00:01:23,157 --> 00:01:25,657
+Gracias, señora. Es usted muy amable.
+
+25
+00:01:26,257 --> 00:01:28,471
+¿Amable? Solo soy amable
+los domingos.
+
+26
+00:01:29,071 --> 00:01:31,714
+Hoy es martes. Entonces tiene suerte.
+
+27
+00:01:32,314 --> 00:01:35,314
+Tom, ve a encender la linterna.
+Ya pasan de las seis.
+
+28
+00:01:35,914 --> 00:01:39,486
+¿No puede hacerlo Helen?
+Siempre soy yo el que sube.
+
+29
+00:01:40,086 --> 00:01:43,514
+Porque Ellen la encendió
+ayer, y tú lo sabes.
+
+30
+00:01:44,114 --> 00:01:47,186
+Bueno. Pero no voy a limpiar
+el cristal después.
+
+31
+00:01:47,786 --> 00:01:51,214
+Limpiarás el cristal o
+no cenarás.
+
+32
+00:01:51,814 --> 00:01:54,529
+¡No es justo! La vida no es justa, muchacho.
+
+33
+00:01:55,129 --> 00:01:58,414
+Pregúntale al pobre diablo
+de las rocas si la vida es justa.
+
+34
+00:01:59,014 --> 00:02:02,229
+Los demás... ¿había otros
+en el agua?
+
+35
+00:02:02,829 --> 00:02:05,257
+No vimos a nadie más, señor.
+Solo a usted.
+
+36
+00:02:05,857 --> 00:02:08,643
+Éramos tres en el Maryanne.
+
+37
+00:02:09,243 --> 00:02:12,529
+El capitán Boase y su hijo.
+El chico tenía doce años.
+
+38
+00:02:13,129 --> 00:02:16,271
+Lo siento, señor. El mar
+se lleva lo que quiere.
+
+39
+00:02:16,871 --> 00:02:19,871
+No diga eso, Sra. Penrose.
+No esta noche.
+
+40
+00:02:20,471 --> 00:02:23,186
+Perdone. No lo dije con mala intención.
+
+41
+00:02:23,786 --> 00:02:26,500
+¿Qué llevaba, Sr. Trevaskis?
+
+42
+00:02:27,100 --> 00:02:30,100
+Estaño. Solo estaño, de la
+mina de Botallack.
+
+43
+00:02:30,700 --> 00:02:33,271
+El estaño no hunde un barco
+en aguas tranquilas.
+
+44
+00:02:33,871 --> 00:02:36,157
+No estaban tranquilas. Vio el cielo.
+
+45
+00:02:36,757 --> 00:02:39,686
+Vi el cielo, sí. Y vi sus manos.
+
+46
+00:02:40,286 --> 00:02:42,143
+¿Mis manos? ¿Qué tienen?
+
+47
+00:02:42,743 --> 00:02:46,243
+Esas no son manos de marinero.
+Demasiado limpias.
+
+48
+00:02:46,843 --> 00:02:49,129
+Padre, basta. Está medio muerto.
+
+49
+00:02:49,729 --> 00:02:52,371
+Los hombres medio muertos
+cuentan mentiras enteras, Ellen.
+
+50
+00:02:52,971 --> 00:02:56,257
+Soy contable. Llevo los libros
+de la compañía.
+
+51
+00:02:56,857 --> 00:02:59,714
+Entonces, ¿por qué un contable
+estaba en un barco de noche?
+
+52
+00:03:00,314 --> 00:03:03,743
+Porque la compañía me pidió
+que contara algo.
+
+53
+00:03:04,343 --> 00:03:07,057
+¿Contar qué? ¿Qué, Sr. Trevaskis?
+
+54
+00:03:07,657 --> 00:03:10,800
+Dinero, Sr. Penrose. Dinero
+que desapareció.
+
+55
+00:03:11,400 --> 00:03:12,900
+Ay, Señor. Ya empezamos.
+
+56
+00:03:13,500 --> 00:03:16,071
+¡La linterna ya está encendida!
+¿Me perdí de algo?
+
+57
+00:03:16,671 --> 00:03:19,457
+Solo de todo. Siéntate y cállate.
+
+58
+00:03:20,057 --> 00:03:22,129
+¿Cuánto dinero? Una enorme cantidad.
+
+59
+00:03:22,729 --> 00:03:25,729
+¿Lo bastante como para que
+un hombre ahogue a otro por él?
+
+60
+00:03:26,329 --> 00:03:28,471
+Lo bastante como para que un
+hombre haga algo peor.
+
+61
+00:03:29,071 --> 00:03:31,714
+Entonces será mejor que
+cerremos con llave esta noche.
+
+62
+00:03:32,314 --> 00:03:35,314
+Tom, baja la escopeta del desván.
+
+63
+00:03:35,914 --> 00:03:38,486
+¿Está cargada? Lo estaba la Navidad pasada.
+
+64
+00:03:39,086 --> 00:03:42,514
+No tiene gracia, padre. No
+lo dije en broma.
+
+65
+00:03:43,114 --> 00:03:46,329
+Alguien sube por el camino.
+Con un farol.
+
+66
+00:03:46,929 --> 00:03:50,357
+¿A estas horas? Nadie sube
+aquí a estas horas.
+
+67
+00:03:50,957 --> 00:03:53,671
+Aléjense de la ventana, los dos.
+
+68
+00:03:54,271 --> 00:03:56,986
+¡Penrose! ¡Abre! ¡Es el guardacostas!
+
+69
+00:03:57,586 --> 00:04:00,800
+No es el guardacostas.
+Reconozco esa voz.
+
+70
+00:04:01,400 --> 00:04:03,614
+Entonces, ¿quién es? El capitán Boase.
+
+71
+00:04:04,214 --> 00:04:07,714
+Pero usted dijo que se ahogó. Yo
+dije que no lo vi.
+
+72
+00:04:08,314 --> 00:04:10,029
+Yo nunca dije que se ahogara.
+
+73
+00:04:10,629 --> 00:04:13,914
+Abra la puerta, Penrose, o
+¡la derribo!
+
+74
+00:04:14,514 --> 00:04:17,443
+¡No hará tal cosa, no en mi casa!
+
+75
+00:04:18,043 --> 00:04:20,971
+Sra. Penrose, lleve a los niños arriba.
+
+76
+00:04:21,571 --> 00:04:23,643
+¡No soy una niña! ¡Tengo quince años!
+
+77
+00:04:24,243 --> 00:04:25,957
+Pues compórtate como tal y vete.
+
+78
+00:04:26,557 --> 00:04:30,700
+Sr. Trevaskis, ¿hay algo más
+que no nos haya dicho?
+
+79
+00:04:31,300 --> 00:04:33,657
+Solo que el dinero está en mi bota.
+
+80
+00:04:34,257 --> 00:04:35,457
+Vaya, caramba.
+

@@ -1,0 +1,6 @@
+tests/sample.srt → tests/sample.spa.srt
+  ficha guardada en tests/sample.ficha.md
+  60/80
+  80/80
+Tokens (claude-haiku-5-5): entrada=5155 salida=7123
+Duración: 34s
