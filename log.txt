@@ -1,0 +1,6 @@
+tests/sample.srt → tests/sample.spa.srt
+  ficha guardada en tests/sample.ficha.md
+  60/80
+  80/80
+Tokens (claude-sonnet-5-5): entrada=5143 salida=4099
+Duración: 30s
