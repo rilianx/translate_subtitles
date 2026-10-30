@@ -91,6 +91,7 @@ IDIOMA_AUDIO = "auto"              # "auto" lo detecta; o fíjalo: "en", "fr", "
 IDIOMA_DESTINO = "español latinoamericano neutro"
 SUFIJO = "spa"                     # salida: nombre.spa.srt
 NOTAS = ""                         # opcional: título, época, personajes, glosario...
+PARALELO = 6                       # bloques de subtítulos que se traducen a la vez
 USAR_FICHA = True                  # lee todo el srt antes y arma ficha de personajes y trato
 """),
     md("## 1. Transcribir"),
@@ -136,7 +137,7 @@ if TRADUCIR:
         subs = translate.leer_srt(path)
         # Ficha de personajes/trato/glosario: se guarda como nombre.ficha.md; si la editas, se reutiliza.
         ficha = translate.ficha_de(path, subs, IDIOMA_DESTINO, NOTAS, translate.cliente()) if USAR_FICHA else ""
-        subs = translate.traducir(subs, IDIOMA_DESTINO, NOTAS, ficha=ficha)
+        subs = translate.traducir(subs, IDIOMA_DESTINO, NOTAS, ficha=ficha, workers=PARALELO)
         translate.escribir_srt(subs, os.path.join(folder_path, f[:-4] + f'.{SUFIJO}.srt'))
 """),
     md("""

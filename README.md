@@ -48,7 +48,7 @@ Resultado en los primeros 20 minutos de una película, contra subtítulos profes
 
 ## Traducción
 
-- Se envían bloques de 60 subtítulos, junto con los 10 anteriores ya traducidos como contexto, para mantener consistentes los nombres y el registro.
+- Se envían bloques de 40 subtítulos, **6 a la vez en paralelo**. Cada bloque incluye como contexto los 8 subtítulos anteriores y los 8 siguientes del original, para no cortar frases que siguen en el subtítulo de al lado.
 - La respuesta vuelve en JSON con un esquema fijo (id → texto); si falta algún id, se reintenta solo con esos.
 - `--notas` (o `NOTAS` en el notebook) permite dar contexto de la obra: época, personajes, glosario o tuteo/voseo.
 - Modelo por defecto: `claude-opus-5-5` con `effort="medium"`.

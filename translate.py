@@ -3,23 +3,28 @@
 1. Lee el .srt completo y arma una ficha de la obra (personajes, relaciones, trato de tú o
    usted, glosario, errores de transcripción). Se guarda en nombre.ficha.md para revisarla o
    editarla; si ya existe, se reutiliza.
-2. Traduce en bloques (con algunas líneas previas como contexto y la ficha en el prompt) y pide
-   la respuesta en JSON con un esquema fijo, así cada traducción vuelve con su id.
+2. Traduce en bloques, varios a la vez (cada uno con algunas líneas vecinas del original como
+   contexto y la ficha en el prompt), y pide la respuesta en JSON con un esquema fijo, así cada
+   traducción vuelve con su id.
 Requiere la variable de entorno ANTHROPIC_API_KEY.
 """
 import json
 import os
 import re
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import anthropic
 
 MODEL = "claude-opus-5-5"
 EFFORT = "medium"     # low/medium/high: más alto = más cuidadoso, más lento y caro
-BATCH = 60            # subtítulos por llamada
-CONTEXT = 10          # subtítulos previos (ya traducidos) que se envían como contexto
+BATCH = 40            # subtítulos por llamada
+CONTEXT = 8           # subtítulos vecinos (antes y después, en el original) que se envían como contexto
+WORKERS = 6           # bloques que se traducen en paralelo
 LINE_CHARS = 42
 
 USO = {"input": 0, "output": 0}   # tokens acumulados en esta sesión
+_LOCK = threading.Lock()
 
 BLOCK = re.compile(r"(\d+)\s*\n(\d+:\d+:\d+[,.]\d+\s*-->\s*\d+:\d+:\d+[,.]\d+)[^\n]*\n(.*?)(?=\n\s*\n|\Z)", re.S)
 
@@ -83,7 +88,8 @@ SCHEMA = {
 def cliente():
     """Cliente con ANTHROPIC_API_KEY; ANTHROPIC_WORKSPACE_ID solo si la key no tiene workspace."""
     ws = os.environ.get("ANTHROPIC_WORKSPACE_ID")
-    return anthropic.Anthropic(default_headers={"anthropic-workspace-id": ws} if ws else None)
+    # Más reintentos que el default: con varios bloques en paralelo es más fácil topar el rate limit (429).
+    return anthropic.Anthropic(default_headers={"anthropic-workspace-id": ws} if ws else None, max_retries=6)
 
 
 def leer_srt(path):
@@ -126,8 +132,9 @@ def _llamar(client, **kw):
         # Si el modelo rechaza la petición, la API la reintenta con el modelo de respaldo recomendado.
         response = client.beta.messages.create(**kw, betas=["server-side-fallback-2026-07-01"],
                                                fallbacks="default")
-    USO["input"] += response.usage.input_tokens
-    USO["output"] += response.usage.output_tokens
+    with _LOCK:
+        USO["input"] += response.usage.input_tokens
+        USO["output"] += response.usage.output_tokens
     if response.stop_reason == "refusal":
         cat = response.stop_details.category if response.stop_details else None
         raise RuntimeError(f"Claude rechazó la petición (categoría: {cat})")
@@ -146,11 +153,14 @@ def preparar_ficha(subs, idioma="español latinoamericano neutro", notas="", cli
                    output_config={"effort": EFFORT}).strip()
 
 
-def _pedir(client, system, contexto, bloque):
+def _pedir(client, system, antes, despues, bloque):
     partes = []
-    if contexto:
-        partes.append("Contexto (subtítulos anteriores, ya traducidos; NO los traduzcas de nuevo):\n"
-                      + json.dumps(contexto, ensure_ascii=False))
+    if antes:
+        partes.append("Contexto: subtítulos anteriores (original; NO los traduzcas):\n"
+                      + json.dumps(antes, ensure_ascii=False))
+    if despues:
+        partes.append("Contexto: subtítulos siguientes (original; NO los traduzcas):\n"
+                      + json.dumps(despues, ensure_ascii=False))
     partes.append("Traduce estos subtítulos:\n"
                   + json.dumps([{"id": s["id"], "texto": s["texto"]} for s in bloque], ensure_ascii=False))
     text = _llamar(
@@ -163,35 +173,52 @@ def _pedir(client, system, contexto, bloque):
     return {d["id"]: d["texto"] for d in json.loads(text)["subtitulos"]}
 
 
-def traducir(subs, idioma="español latinoamericano neutro", notas="", client=None, verbose=True, ficha=""):
+def _traducir_bloque(client, system, subs, i):
+    """Traduce subs[i:i+BATCH] (con 1 reintento de los que falten). Devuelve {id: texto}."""
+    bloque = subs[i:i + BATCH]
+    ctx = lambda ss: [{"id": s["id"], "texto": s["texto"]} for s in ss]
+    antes, despues = ctx(subs[max(0, i - CONTEXT):i]), ctx(subs[i + BATCH:i + BATCH + CONTEXT])
+    pendientes, trad = bloque, {}
+    for _ in range(2):
+        try:
+            trad.update(_pedir(client, system, antes, despues, pendientes))
+        except (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthropic.BadRequestError):
+            raise                               # key o petición inválida: no tiene sentido seguir
+        except (RuntimeError, json.JSONDecodeError, StopIteration, anthropic.APIStatusError) as e:
+            print(f"  ! bloque {i // BATCH + 1}: {e}")
+        pendientes = [s for s in bloque if s["id"] not in trad]
+        if not pendientes:
+            break
+    if pendientes:
+        print(f"  ! {len(pendientes)} subtítulos quedaron sin traducir (ids {[s['id'] for s in pendientes][:10]}...)")
+    return trad
+
+
+def traducir(subs, idioma="español latinoamericano neutro", notas="", client=None, verbose=True, ficha="",
+             workers=None):
     """Devuelve una copia de `subs` con el texto traducido. Los tiempos no se tocan."""
     client = client or cliente()
     system = SYSTEM.format(idioma=idioma, chars=LINE_CHARS,
                            notas=f"\nNotas sobre la obra:\n{notas}" if notas else "",
                            ficha=f"\n<ficha_de_la_obra>\n{ficha}\n</ficha_de_la_obra>" if ficha else "")
     out = [dict(s) for s in subs]
-    for i in range(0, len(subs), BATCH):
-        bloque = subs[i:i + BATCH]
-        contexto = [{"id": s["id"], "original": subs[j]["texto"], "traduccion": s["texto"]}
-                    for j, s in enumerate(out[max(0, i - CONTEXT):i], start=max(0, i - CONTEXT))]
-        pendientes, trad = bloque, {}
-        for _ in range(2):                      # 1 reintento solo con los que faltaron
-            try:
-                trad.update(_pedir(client, system, contexto, pendientes))
-            except (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthropic.BadRequestError):
-                raise                           # key o petición inválida: no tiene sentido seguir
-            except (RuntimeError, json.JSONDecodeError, StopIteration, anthropic.APIStatusError) as e:
-                print(f"  ! bloque {i // BATCH + 1}: {e}")
-            pendientes = [s for s in bloque if s["id"] not in trad]
-            if not pendientes:
-                break
-        for k, s in enumerate(bloque):
-            if s["id"] in trad:
-                out[i + k]["texto"] = _rearmar(trad[s["id"]])
-        if pendientes:
-            print(f"  ! {len(pendientes)} subtítulos quedaron sin traducir (ids {[s['id'] for s in pendientes][:10]}...)")
-        if verbose:
-            print(f"  {min(i + BATCH, len(subs))}/{len(subs)}")
+    hechos = 0
+    with ThreadPoolExecutor(max_workers=workers or WORKERS) as pool:
+        futuros = {pool.submit(_traducir_bloque, client, system, subs, i): i for i in range(0, len(subs), BATCH)}
+        try:
+            for fut in as_completed(futuros):
+                i = futuros[fut]
+                trad = fut.result()
+                for k, s in enumerate(subs[i:i + BATCH]):
+                    if s["id"] in trad:
+                        out[i + k]["texto"] = _rearmar(trad[s["id"]])
+                hechos += len(subs[i:i + BATCH])
+                if verbose:
+                    print(f"  {hechos}/{len(subs)}")
+        except BaseException:
+            for f in futuros:                   # error de key, Ctrl+C...: no lanzar los bloques pendientes
+                f.cancel()
+            raise
     return out
 
 
