@@ -1,4 +1,4 @@
-"""Genera mp32srt.ipynb a partir de los módulos .py (fuente única del código)."""
+"""Genera mp32srt.ipynb. El notebook descarga el código (.py) desde GitHub al ejecutarse."""
 import json
 
 def code(src):
@@ -7,19 +7,35 @@ def code(src):
 def md(src):
     return {"cell_type": "markdown", "metadata": {}, "source": src.strip("\n").splitlines(True)}
 
-def module(name):
-    return code(f"%%writefile {name}\n" + open(name, encoding="utf-8").read())
-
 cells = [
     md("""
 # mp3 → srt → traducción
 1. **Transcribe** cada `.mp3` sin `.srt` con faster-whisper, usando tiempos por palabra.
 2. **Traduce** cada `.srt` sin su versión `.spa.srt` con Claude, sin tocar los tiempos.
 
-Requisitos: entorno con GPU (*Entorno de ejecución → Cambiar tipo → T4 GPU*) y, para traducir,
-el secreto `ANTHROPIC_API_KEY` en el panel 🔑 con acceso habilitado para este notebook.
+Requisitos: entorno con GPU (*Entorno de ejecución → Cambiar tipo → T4 GPU*) y estos secretos
+en el panel 🔑 (con acceso habilitado para este notebook):
+- `GITHUB_TOKEN`: token de GitHub con permiso de lectura del repo `rilianx/translate_subtitles`
+  (el código se descarga del repo en cada ejecución, así siempre está al día).
+- `ANTHROPIC_API_KEY` (y `ANTHROPIC_WORKSPACE_ID` si tu key no pertenece a un workspace).
 """),
-    code("!pip install -q faster-whisper anthropic"),
+    code("""
+!pip install -q faster-whisper anthropic
+import subprocess, sys
+from google.colab import userdata
+
+# Descarga la última versión del código desde GitHub (repo privado: usa el secreto GITHUB_TOKEN).
+REPO = "rilianx/translate_subtitles"
+subprocess.run(["rm", "-rf", "/content/translate_subtitles"])
+r = subprocess.run(["git", "clone", "-q", "--depth", "1",
+                    f"https://{userdata.get('GITHUB_TOKEN')}@github.com/{REPO}", "/content/translate_subtitles"],
+                   capture_output=True, text=True)
+if r.returncode:
+    raise RuntimeError("No se pudo clonar el repo: revisa el secreto GITHUB_TOKEN")
+sys.path.insert(0, "/content/translate_subtitles")
+print(subprocess.run(["git", "-C", "/content/translate_subtitles", "log", "-1", "--format=Código: %h %s (%cr)"],
+                     capture_output=True, text=True).stdout)
+"""),
     code("""
 import os
 from google.colab import drive
@@ -35,13 +51,9 @@ SUFIJO = "spa"                     # salida: nombre.spa.srt
 NOTAS = ""                         # opcional: título, época, personajes, glosario...
 USAR_FICHA = True                  # lee todo el srt antes y arma ficha de personajes y trato
 """),
-    md("## Código (se escribe a archivos .py y se importa)"),
-    module("transcribe.py"),
-    module("translate.py"),
     md("## 1. Transcribir"),
     code("""
-import importlib, transcribe
-importlib.reload(transcribe)
+import transcribe
 
 archivos = os.listdir(folder_path)
 mp3s = sorted(os.path.splitext(f)[0] for f in archivos if f.lower().endswith('.mp3'))
@@ -61,9 +73,7 @@ if TRANSCRIBIR and pendientes:
 """),
     md("## 2. Traducir con Claude"),
     code("""
-import importlib, translate
-from google.colab import userdata
-importlib.reload(translate)
+import translate
 os.environ["ANTHROPIC_API_KEY"] = userdata.get("ANTHROPIC_API_KEY")
 try:   # solo si tu key no está asociada a un workspace
     os.environ["ANTHROPIC_WORKSPACE_ID"] = userdata.get("ANTHROPIC_WORKSPACE_ID")
@@ -71,7 +81,7 @@ except Exception:
     pass
 
 archivos = os.listdir(folder_path)
-originales =[f for f in archivos if f.lower().endswith('.srt') and not f[:-4].endswith(f'.{SUFIJO}')]
+originales = [f for f in archivos if f.lower().endswith('.srt') and not f[:-4].endswith(f'.{SUFIJO}')]
 pendientes_tr = sorted(f for f in originales if f[:-4] + f'.{SUFIJO}.srt' not in archivos)
 print(f"{len(pendientes_tr)} srt sin traducir:", *pendientes_tr, sep="\\n- ")
 
@@ -89,7 +99,6 @@ if TRADUCIR:
 ## (Opcional) Validar tiempos contra un SRT de referencia
 Compara solo tiempos; la referencia puede estar en otro idioma. F1 = cuánto coincide el tiempo en pantalla.
 """),
-    module("evalsrt.py"),
     code("""
 import evalsrt
 ref_srt = '/content/drive/MyDrive/<ruta>/example.srt'
