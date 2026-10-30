@@ -39,8 +39,21 @@ except OSError:
                 ctypes.CDLL(f, mode=ctypes.RTLD_GLOBAL)
             except OSError:
                 pass
-    ctypes.CDLL("libcublas.so.12")        # si esto falla, el error es claro aquí y no a mitad de película
-    print("Librerías CUDA 12 instaladas y cargadas")
+    print("Librerías CUDA 12 instaladas y precargadas")
+
+# Prueba rápida de la GPU con el modelo más chico: si algo falla, falla aquí y no a mitad de película.
+import numpy as np, torch
+from faster_whisper import WhisperModel
+if torch.cuda.is_available():
+    try:
+        list(WhisperModel("tiny", device="cuda", compute_type="float16").transcribe(np.zeros(16000, np.float32))[0])
+        print("GPU lista para Whisper ✔")
+    except RuntimeError as e:
+        !nvidia-smi | head -4
+        !find / -name "libcublas.so*" 2>/dev/null | head
+        raise RuntimeError(f"Whisper no puede usar la GPU: {e}. Copia esta salida completa a Claude.")
+else:
+    print("⚠ Sin GPU: Entorno de ejecución → Cambiar tipo de entorno → T4 GPU (en CPU será muy lento)")
 
 # Descarga la última versión del código desde GitHub.
 # Si el repo fuera privado, crea el secreto GITHUB_TOKEN (token con lectura del repo).
@@ -75,7 +88,8 @@ USAR_FICHA = True                  # lee todo el srt antes y arma ficha de perso
 """),
     md("## 1. Transcribir"),
     code("""
-import transcribe
+import importlib, transcribe
+importlib.reload(transcribe)          # por si se re-ejecuta sin reiniciar: usar siempre el código recién descargado
 
 archivos = os.listdir(folder_path)
 mp3s = sorted(os.path.splitext(f)[0] for f in archivos if f.lower().endswith('.mp3'))
@@ -95,7 +109,8 @@ if TRANSCRIBIR and pendientes:
 """),
     md("## 2. Traducir con Claude"),
     code("""
-import translate
+import importlib, translate
+importlib.reload(translate)          # por si se re-ejecuta sin reiniciar: usar siempre el código recién descargado
 os.environ["ANTHROPIC_API_KEY"] = userdata.get("ANTHROPIC_API_KEY")
 try:   # solo si tu key no está asociada a un workspace
     os.environ["ANTHROPIC_WORKSPACE_ID"] = userdata.get("ANTHROPIC_WORKSPACE_ID")
@@ -122,7 +137,8 @@ if TRADUCIR:
 Compara solo tiempos; la referencia puede estar en otro idioma. F1 = cuánto coincide el tiempo en pantalla.
 """),
     code("""
-import evalsrt
+import importlib, evalsrt
+importlib.reload(evalsrt)          # por si se re-ejecuta sin reiniciar: usar siempre el código recién descargado
 ref_srt = '/content/drive/MyDrive/<ruta>/example.srt'
 hyp_srt = '/content/drive/MyDrive/<ruta>/example_gen.srt'
 TMAX = None   # p.ej. 1200 para evaluar solo los primeros 20 min
