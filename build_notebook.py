@@ -13,10 +13,10 @@ cells = [
 1. **Transcribe** cada `.mp3` sin `.srt` con faster-whisper, usando tiempos por palabra.
 2. **Traduce** cada `.srt` sin su versión `.spa.srt` con Claude, sin tocar los tiempos.
 
+El código se descarga de GitHub (`rilianx/translate_subtitles`) en cada ejecución, así siempre está al día.
+
 Requisitos: entorno con GPU (*Entorno de ejecución → Cambiar tipo → T4 GPU*) y estos secretos
 en el panel 🔑 (con acceso habilitado para este notebook):
-- `GITHUB_TOKEN`: token de GitHub con permiso de lectura del repo `rilianx/translate_subtitles`
-  (el código se descarga del repo en cada ejecución, así siempre está al día).
 - `ANTHROPIC_API_KEY` (y `ANTHROPIC_WORKSPACE_ID` si tu key no pertenece a un workspace).
 """),
     code("""
@@ -24,14 +24,18 @@ en el panel 🔑 (con acceso habilitado para este notebook):
 import subprocess, sys
 from google.colab import userdata
 
-# Descarga la última versión del código desde GitHub (repo privado: usa el secreto GITHUB_TOKEN).
+# Descarga la última versión del código desde GitHub.
+# Si el repo fuera privado, crea el secreto GITHUB_TOKEN (token con lectura del repo).
 REPO = "rilianx/translate_subtitles"
+try:
+    auth = userdata.get("GITHUB_TOKEN") + "@"
+except Exception:
+    auth = ""
 subprocess.run(["rm", "-rf", "/content/translate_subtitles"])
-r = subprocess.run(["git", "clone", "-q", "--depth", "1",
-                    f"https://{userdata.get('GITHUB_TOKEN')}@github.com/{REPO}", "/content/translate_subtitles"],
-                   capture_output=True, text=True)
+r = subprocess.run(["git", "clone", "-q", "--depth", "1", f"https://{auth}github.com/{REPO}",
+                    "/content/translate_subtitles"], capture_output=True, text=True)
 if r.returncode:
-    raise RuntimeError("No se pudo clonar el repo: revisa el secreto GITHUB_TOKEN")
+    raise RuntimeError("No se pudo clonar el repo (¿es privado? crea el secreto GITHUB_TOKEN)")
 sys.path.insert(0, "/content/translate_subtitles")
 print(subprocess.run(["git", "-C", "/content/translate_subtitles", "log", "-1", "--format=Código: %h %s (%cr)"],
                      capture_output=True, text=True).stdout)

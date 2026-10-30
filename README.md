@@ -9,7 +9,7 @@ Subtítulos automáticos para películas y series:
 ## Uso en Colab (recomendado)
 
 Abre `mp32srt.ipynb` en Colab (*Archivo → Abrir notebook → GitHub*) con un entorno de GPU T4.
-- El notebook descarga el código de este repo en cada ejecución. Como el repo es privado, necesita el secreto `GITHUB_TOKEN` en el panel 🔑: un *fine-grained token* con permiso **Contents: Read-only**, solo sobre este repo.
+- El notebook descarga el código de este repo en cada ejecución, así siempre usa la última versión.
 - Para traducir, crea el secreto `ANTHROPIC_API_KEY` en el panel 🔑 y habilita el acceso para el notebook. Si tu key no pertenece a un workspace, agrega también `ANTHROPIC_WORKSPACE_ID`.
 - En la celda de configuración, ajusta `folder_path`.
 
