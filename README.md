@@ -46,6 +46,15 @@ Resultado en los primeros 20 minutos de una película, contra subtítulos profes
 | Error mediano al final | 0,53 s | **0,37 s** |
 | F1 del tiempo en pantalla | 0,78 | **0,84** |
 
+## Películas con varios idiomas
+
+Con `IDIOMA_AUDIO = "auto"` (o `--language auto`), el idioma se detecta cada 10 s. Si la película mezcla idiomas (por ejemplo, un documental con narración en inglés y entrevistas en chino), cada tramo se transcribe con su idioma:
+- Si se fuerza un solo idioma, Whisper mezcla idiomas dentro de un mismo subtítulo, o "traduce" el otro idioma e inventa texto en bucle.
+- Solo se usan los idiomas que aparecen en al menos el 5 % de la película, así un falso positivo sobre música no se transcribe en un idioma raro.
+- Un subtítulo nunca mezcla dos idiomas. Claude traduce cada tramo desde su idioma.
+
+Con un solo idioma, el resultado es el mismo que antes.
+
 ## Traducción
 
 - Se envían bloques de 40 subtítulos, **6 a la vez en paralelo**. Cada bloque incluye como contexto los 8 subtítulos anteriores y los 8 siguientes del original, para no cortar frases que siguen en el subtítulo de al lado.
